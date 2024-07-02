@@ -2,7 +2,8 @@
 1. pip install Flask Flask-SQLAlchemy Flask-JWT-Extended python-dateutil
 2. create env:
         ADMIN_API_KEY = 'workindiaadmin'
-3. edit config file
+3. edit config file:
+        SQLALCHEMY_DATABASE_URI = 'mysql://root:password@localhost:3306/dining_db'
 4. create tables:
    
         CREATE TABLE User(
