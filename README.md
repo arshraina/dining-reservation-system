@@ -3,8 +3,10 @@
 2. create env:
         ADMIN_API_KEY = 'workindiaadmin'
 3. edit config file:
-        SQLALCHEMY_DATABASE_URI = 'mysql://root:password@localhost:3306/dining_db'
-4. create tables:
+           SQLALCHEMY_DATABASE_URI = 'mysql://root:password@localhost:3306/dining_db'
+           SQLALCHEMY_TRACK_MODIFICATIONS = False
+           JWT_SECRET_KEY = 'workindiajwt'
+5. create tables:
    
         CREATE TABLE User(
           id INT AUTO_INCREMENT PRIMARY KEY,
