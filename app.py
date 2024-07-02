@@ -95,6 +95,9 @@ def get_dining_places():
 
     return jsonify({'results': results}), 200
 
+
+#The below routes don't work properly 
+
 @app.route('/api/dining-place/availability', methods=['GET'])
 def get_dining_place_availability():
     place_id = request.args.get('place_id')
