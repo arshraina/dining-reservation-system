@@ -98,88 +98,87 @@ def get_dining_places():
 
 #The below routes don't work properly 
 
-@app.route('/api/dining-place/availability', methods=['GET'])
-def get_dining_place_availability():
-    place_id = request.args.get('place_id')
-    start_time = request.args.get('start_time')
-    end_time = request.args.get('end_time')
+# @app.route('/api/dining-place/availability', methods=['GET'])
+# def get_dining_place_availability():
+#     place_id = request.args.get('place_id')
+#     start_time = request.args.get('start_time')
+#     end_time = request.args.get('end_time')
 
-    if not place_id or not start_time or not end_time:
-        return jsonify({"error": "Missing required parameters"}), 400
+#     if not place_id or not start_time or not end_time:
+#         return jsonify({"error": "Missing required parameters"}), 400
 
-    try:
-        start_time_dt = parse(start_time)
-        end_time_dt = parse(end_time)
-    except ValueError:
-        return jsonify({"error": "Invalid date format"}), 400
+#     try:
+#         start_time_dt = parse(start_time)
+#         end_time_dt = parse(end_time)
+#     except ValueError:
+#         return jsonify({"error": "Invalid date format"}), 400
 
-    dining_place = DiningPlace.query.get(place_id)
+#     dining_place = DiningPlace.query.get(place_id)
 
-    if not dining_place:
-        return jsonify({"error": "Dining place not found"}), 404
+#     if not dining_place:
+#         return jsonify({"error": "Dining place not found"}), 404
 
-    available = True
-    next_available_slot = None
+#     available = True
+#     next_available_slot = None
 
-    bookings = Booking.query.filter_by(place_id=place_id).all()
-    for booking in bookings:
-        if start_time_dt < booking.end_time and end_time_dt > booking.start_time:
-            available = False
-            next_available_slot = booking.end_time.isoformat() if booking.end_time > end_time_dt else next_available_slot
-            break
+#     bookings = Booking.query.filter_by(place_id=place_id).all()
+#     for booking in bookings:
+#         if start_time_dt < booking.end_time and end_time_dt > booking.start_time:
+#             available = False
+#             next_available_slot = booking.end_time.isoformat() if booking.end_time > end_time_dt else next_available_slot
+#             break
 
-    response = {
-        "place_id": dining_place.id,
-        "name": dining_place.name,
-        "phone_no": dining_place.phone_no,
-        "available": available,
-        "next_available_slot": next_available_slot
-    }
+#     response = {
+#         "place_id": dining_place.id,
+#         "name": dining_place.name,
+#         "phone_no": dining_place.phone_no,
+#         "available": available,
+#         "next_available_slot": next_available_slot
+#     }
 
-    return jsonify(response)
+#     return jsonify(response)
 
-from datetime import datetime
-import pytz
 
-@app.route('/api/dining-place/book', methods=['POST'])
-@jwt_required()  # Protect the endpoint with JWT authentication
-def book_dining_place():
-    current_user_id = get_jwt_identity()  # Get current user's ID from JWT token
-    data = request.get_json()
-    place_id = data.get('place_id')
-    start_time_str = data.get('start_time')
-    end_time_str = data.get('end_time')
 
-    try:
-        # Parse datetime strings and replace 'Z' with '+00:00' for UTC conversion
-        start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
-        end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
-    except ValueError:
-        return jsonify({"error": "Invalid date format"}), 400
+# @app.route('/api/dining-place/book', methods=['POST'])
+# @jwt_required()  # Protect the endpoint with JWT authentication
+# def book_dining_place():
+#     current_user_id = get_jwt_identity()  # Get current user's ID from JWT token
+#     data = request.get_json()
+#     place_id = data.get('place_id')
+#     start_time_str = data.get('start_time')
+#     end_time_str = data.get('end_time')
 
-    # Convert parsed datetimes to UTC timezone
-    utc = pytz.UTC
-    start_time_utc = start_time.astimezone(utc)
-    end_time_utc = end_time.astimezone(utc)
+#     try:
+#         # Parse datetime strings and replace 'Z' with '+00:00' for UTC conversion
+#         start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
+#         end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
+#     except ValueError:
+#         return jsonify({"error": "Invalid date format"}), 400
 
-    place = DiningPlace.query.get(place_id)
-    if not place:
-        return jsonify({'status': 'Place not found', 'status_code': 404}), 404
+#     # Convert parsed datetimes to UTC timezone
+#     utc = pytz.UTC
+#     start_time_utc = start_time.astimezone(utc)
+#     end_time_utc = end_time.astimezone(utc)
 
-    # Check if the slot is already booked
-    bookings = Booking.query.filter_by(place_id=place_id).all()
-    for booking in bookings:
-        booking_start = datetime.fromisoformat(booking.start_time.replace('Z', '+00:00')).replace(tzinfo=utc)
-        booking_end = datetime.fromisoformat(booking.end_time.replace('Z', '+00:00')).replace(tzinfo=utc)
-        if start_time_utc < booking_end and end_time_utc > booking_start:
-            return jsonify({'status': 'Slot is not available at this moment, please try some other place', 'status_code': 400}), 400
+#     place = DiningPlace.query.get(place_id)
+#     if not place:
+#         return jsonify({'status': 'Place not found', 'status_code': 404}), 404
 
-    # Add the booking to the bookings table
-    new_booking = Booking(user_id=current_user_id, place_id=place_id, start_time=start_time_utc, end_time=end_time_utc)
-    db.session.add(new_booking)
-    db.session.commit()
+#     # Check if the slot is already booked
+#     bookings = Booking.query.filter_by(place_id=place_id).all()
+#     for booking in bookings:
+#         booking_start = datetime.fromisoformat(booking.start_time.replace('Z', '+00:00')).replace(tzinfo=utc)
+#         booking_end = datetime.fromisoformat(booking.end_time.replace('Z', '+00:00')).replace(tzinfo=utc)
+#         if start_time_utc < booking_end and end_time_utc > booking_start:
+#             return jsonify({'status': 'Slot is not available at this moment, please try some other place', 'status_code': 400}), 400
 
-    return jsonify({'status': 'Slot booked successfully', 'status_code': 200}), 200
+#     # Add the booking to the bookings table
+#     new_booking = Booking(user_id=current_user_id, place_id=place_id, start_time=start_time_utc, end_time=end_time_utc)
+#     db.session.add(new_booking)
+#     db.session.commit()
+
+#     return jsonify({'status': 'Slot booked successfully', 'status_code': 200}), 200
 
 
 if __name__ == '__main__':
